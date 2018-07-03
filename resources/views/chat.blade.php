@@ -5,7 +5,7 @@
     <div class="row">
         <div class="col-md-8 col-md-offset-2">
             <div class="panel panel-default">
-                <div class="panel-heading">Contacts</div>
+                <div class="panel-heading">Conversations</div>
 
                 <div class="panel-body">
                     @if (session('status'))
@@ -14,9 +14,7 @@
                         </div>
                     @endif
 
-                    @foreach ($contacts as $contact)
-                        <p><a href="{{ url('/chat') }}/{{ $contact['uuid'] }}"><b>{{ $contact['name'] }}</b>&nbsp;({{ $contact['email'] }})</a></p>
-                    @endforeach
+                    {{ $uuid }}
                 </div>
             </div>
         </div>
