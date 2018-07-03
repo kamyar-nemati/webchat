@@ -1,0 +1,7 @@
+Database configuration:
+
+create database webchatdb;
+create user webchatuser identified by 'abc123';
+grant insert,select,update,delete on webchatdb.* to webchatuser;
+create user webchatadmin identified by 'abcd1234';
+grant all on webchatdb.* to webchatadmin;

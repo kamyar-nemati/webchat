@@ -24,8 +24,9 @@ io.on('connection', (socket) => {
         var message = data.message;
         var recipient = data.recipient;
 
-        io.to(socket.username + recipient).emit('new_msg', {
-            message: message
+        io.to(recipient).emit('new_msg', {
+            message: message,
+            sender: socket.username
         });
     });
 });
