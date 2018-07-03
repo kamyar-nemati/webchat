@@ -7,6 +7,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\RegistersUsers;
 
+// ramsey/uuid package
+use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\Exception\UnsatisfiedDependencyException;
+
 class RegisterController extends Controller
 {
     /*
@@ -62,7 +66,22 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
+        // every user must be given a uuid upon registration
+        $uuid_str = "";
+        
+        // create a uuid
+        try
+        {
+            $uuid_obj = Uuid::uuid1();
+            $uuid_str = $uuid_obj->toString();
+        }
+        catch (UnsatisfiedDependencyException $ex)
+        {
+            return FALSE;
+        }
+
         return User::create([
+            'uuid' => $uuid_str,
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
