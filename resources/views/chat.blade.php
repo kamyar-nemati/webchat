@@ -63,7 +63,7 @@
             var message = data.message;
             var sender = data.sender;
 
-            if (sender === recipient)
+            if (sender === rcpt_uuid)
             {
                 conversation_body.append("<p>" + message + "</p><br/>");
             }
