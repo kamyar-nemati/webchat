@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-use App\Contact;
+use App\User;
 
 class HomeController extends Controller
 {
@@ -25,7 +25,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $contacts = Contact::all('uuid', 'name', 'email');
+        $contacts = User::all('uuid', 'name', 'email');
 
         return view('home', ['contacts' => $contacts]);
     }

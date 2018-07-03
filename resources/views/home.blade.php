@@ -15,7 +15,7 @@
                     @endif
 
                     @foreach ($contacts as $contact)
-                        <p><a href="{{ url('/chat') }}/{{ $contact['uuid'] }}"><b>{{ $contact['name'] }}</b>&nbsp;({{ $contact['email'] }})</a></p>
+                        <p><a href="{{ url('/chat') }}/{{ Auth::user()->uuid }}/{{ $contact['uuid'] }}"><b>{{ $contact['name'] }}</b>&nbsp;({{ $contact['email'] }})</a></p>
                     @endforeach
                 </div>
             </div>
