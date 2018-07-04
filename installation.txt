@@ -9,3 +9,6 @@ grant all on webchatdb.* to webchatadmin;
 Project installation:
 composer update
 npm update
+
+Websocket launch:
+nohup node server.js &
