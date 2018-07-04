@@ -27,6 +27,7 @@ class HomeController extends Controller
      */
     public function index()
     {
+        // get all other registered users as contacts
         $contacts = User::where('uuid', '<>', Auth::user()->uuid)
                 ->get(['uuid', 'name', 'email'])
                 ->toArray();
