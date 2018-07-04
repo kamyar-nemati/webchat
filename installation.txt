@@ -1,3 +1,7 @@
+
+Web server pre-requisites:
+php nginx mysql nodejs
+
 Database configuration:
 
 create database webchatdb;
@@ -7,8 +11,10 @@ create user webchatadmin identified by 'abcd1234';
 grant all on webchatdb.* to webchatadmin;
 
 Project installation:
+
 composer update
 npm update
 
 Websocket launch:
+
 nohup node server.js &
