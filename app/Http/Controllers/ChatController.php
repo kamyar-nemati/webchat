@@ -15,11 +15,13 @@ class ChatController extends Controller
     
     public function index($user_uuid, $rcpt_uuid)
     {
+        // do not route to self-chat page
         if ($user_uuid === $rcpt_uuid)
         {
             abort(404);
         }
 
+        // get contact's name
         $contact_name = User::where('uuid', '=', $rcpt_uuid)
                 ->get(['name'])
                 ->first()
