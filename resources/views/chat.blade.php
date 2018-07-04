@@ -5,7 +5,7 @@
     <div class="row">
         <div class="col-md-8 col-md-offset-2">
             <div class="panel panel-default">
-                <div class="panel-heading">Conversations</div>
+                <div class="panel-heading">Conversations with {{ $contact_name }}</div>
 
                 <input type="hidden" id="sock_url" value="{{ config('app.socket_url', '') }}">
                 <input type="hidden" id="sock_port" value="{{ config('app.socket_port', '') }}">
@@ -65,8 +65,8 @@
                 message: message,
                 recipient: rcpt_uuid
             });
-
-            conversation_body.append("<p style='float: right;'>" + message + "</p><br/>");
+            
+            conversation_body.append("<p style='background-color: #80ffc0; float: right;'>" + message + "</p><br/><br/>");
         });
 
         socket.on('new_msg', (object) => {
@@ -75,7 +75,7 @@
             var message = object.message;
             var sender = object.sender;
 
-            conversation_body.append("<p>" + message + "</p><br/>");
+            conversation_body.append("<p style='background-color: #e1e1e1;'>" + message + "</p><br/><br/>");
 
             /* if (sender === rcpt_uuid)
             {
