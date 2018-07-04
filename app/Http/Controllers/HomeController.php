@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 
 use App\User;
 
+use Illuminate\Support\Facades\Auth;
+
 class HomeController extends Controller
 {
     /**
@@ -25,7 +27,9 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $contacts = User::all('uuid', 'name', 'email');
+        $contacts = User::where('uuid', '<>', Auth::user()->uuid)
+                ->get(['uuid', 'name', 'email'])
+                ->toArray();
 
         return view('home', ['contacts' => $contacts]);
     }

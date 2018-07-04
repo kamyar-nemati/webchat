@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+
 use App\User;
 
 class ChatController extends Controller
@@ -14,10 +15,15 @@ class ChatController extends Controller
     
     public function index($user_uuid, $rcpt_uuid)
     {
+        if ($user_uuid === $rcpt_uuid)
+        {
+            abort(404);
+        }
+
         $contact_name = User::where('uuid', '=', $rcpt_uuid)
-        ->get(['name'])
-        ->first()
-        ->toArray()['name'];
+                ->get(['name'])
+                ->first()
+                ->toArray()['name'];
 
         return view('chat', [
             'contact_name' => $contact_name,
