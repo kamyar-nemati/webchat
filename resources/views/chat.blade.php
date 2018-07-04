@@ -59,6 +59,14 @@
 
         send_message_btn.click(function() {
             var message = text_message_box.val();
+            
+            // abort on empty message
+            if (message === '')
+            {
+                
+                return false;
+            }
+
             console.log('Sending new message');
 
             socket.emit('new_msg', {
@@ -66,7 +74,10 @@
                 recipient: rcpt_uuid
             });
             
-            conversation_body.append("<p style='background-color: #80ffc0; float: right;'>" + message + "</p><br/><br/>");
+            conversation_body.append("<p class='message_box message_box_you'>" + message + "</p><br/>");
+
+            // clear the message textbox
+            text_message_box.val('');
         });
 
         socket.on('new_msg', (object) => {
@@ -75,12 +86,11 @@
             var message = object.message;
             var sender = object.sender;
 
-            conversation_body.append("<p style='background-color: #e1e1e1;'>" + message + "</p><br/><br/>");
-
-            /* if (sender === rcpt_uuid)
+            // user is interested in messages from recipient only
+            if (sender === rcpt_uuid)
             {
-                
-            } */
+                conversation_body.append("<p class='message_box message_box_them'>" + message + "</p><br/>");
+            }
         });
     });
 </script>

@@ -1,0 +1,13 @@
+
+.message_box {
+    display: inline-block;
+}
+
+.message_box_you {
+    background-color: #80ffc0;
+    float: right;
+}
+
+.message_box_them {
+    background-color: #e1e1e1;
+}
