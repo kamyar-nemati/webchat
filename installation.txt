@@ -2,6 +2,12 @@
 Web server pre-requisites:
 php nginx mysql nodejs
 
+Web server configuration:
+put
+    try_files $uri $uri/ /index.php?/$request_uri;
+under
+    location / {
+
 Database configuration:
 
 create database webchatdb;
