@@ -59,7 +59,7 @@
 
         send_message_btn.click(function() {
             var message = text_message_box.val();
-            
+
             // abort on empty message
             if (message === '')
             {
@@ -74,7 +74,7 @@
                 recipient: rcpt_uuid
             });
             
-            conversation_body.append("<p class='message_box message_box_you'>" + message + "</p><br/>");
+            conversation_body.append("<p class='message_box message_box_you'>" + message + "</p><br/><br/>");
 
             // clear the message textbox
             text_message_box.val('');
@@ -89,7 +89,7 @@
             // user is interested in messages from recipient only
             if (sender === rcpt_uuid)
             {
-                conversation_body.append("<p class='message_box message_box_them'>" + message + "</p><br/>");
+                conversation_body.append("<p class='message_box message_box_them'>" + message + "</p><br/><br/>");
             }
         });
     });
