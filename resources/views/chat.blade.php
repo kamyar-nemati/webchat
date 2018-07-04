@@ -7,6 +7,8 @@
             <div class="panel panel-default">
                 <div class="panel-heading">Conversations</div>
 
+                <input type="hidden" id="sock_url" value="{{ config('app.socket_url', '') }}">
+                <input type="hidden" id="sock_port" value="{{ config('app.socket_port', '') }}">
                 <input type="hidden" id="user_uuid" value="{{ $user_uuid }}">
                 <input type="hidden" id="rcpt_uuid" value="{{ $rcpt_uuid }}">
 
@@ -20,8 +22,8 @@
                     
                 </div>
                 <div class="panel-footer">
-                    <input id="text_message" type="text">
-                    <button id="send_message">Send</button>
+                    <input id="text_message_box" type="text">
+                    <button id="send_message_btn">Send</button>
                 </div>
             </div>
         </div>
@@ -34,39 +36,51 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
 
 <script>
-    $(function() {
-        // socket server end point
-        var end_point = 'http://localhost:6789';
-
-        var socket = io.connect(end_point);
-
+    $(document).ready(function() {
+        // DOM refrences
+        var sock_url = $('#sock_url').val();
+        var sock_port = $('#sock_port').val();
         var user_uuid = $('#user_uuid').val();
         var rcpt_uuid = $('#rcpt_uuid').val();
+        var conversation_body = $('#conversation_body');
+        var text_message_box = $('#text_message_box');
+        var send_message_btn = $('#send_message_btn');
 
-        socket.emit('join', user_uuid);
+        // socket server end point
+        var end_point = sock_url + ':' + sock_port;
 
-        var text_message = $('#text_message');
-        var send_message = $('#send_message');
+        console.log('Connecting websocket ' + end_point);
+        var socket = io.connect(end_point);
 
-        send_message.click(function() {
+        console.log('Joining');
+        socket.emit('join', {
+            client_uuid: user_uuid
+        });
+
+        send_message_btn.click(function() {
+            var message = text_message_box.val();
+            console.log('Sending new message');
+
             socket.emit('new_msg', {
-                message: text_message.val(),
+                message: message,
                 recipient: rcpt_uuid
             });
 
-            conversation_body.append("<p style='float: right;'>" + text_message.val() + "</p><br/>");
+            conversation_body.append("<p style='float: right;'>" + message + "</p><br/>");
         });
 
-        var conversation_body = $('#conversation_body');
+        socket.on('new_msg', (object) => {
+            console.log('New message received ' + JSON.stringify(object));
 
-        socket.on('new_msg', (data) => {
-            var message = data.message;
-            var sender = data.sender;
+            var message = object.message;
+            var sender = object.sender;
 
-            if (sender === rcpt_uuid)
+            conversation_body.append("<p>" + message + "</p><br/>");
+
+            /* if (sender === rcpt_uuid)
             {
-                conversation_body.append("<p>" + message + "</p><br/>");
-            }
+                
+            } */
         });
     });
 </script>

@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'WebChat'),
 
     /*
     |--------------------------------------------------------------------------
@@ -227,5 +227,9 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
 
     ],
+
+    'socket_url' => env('SOCK_URL', 'http://localhost'),
+
+    'socket_port' => env('SOCK_PORT', '6789'),
 
 ];
