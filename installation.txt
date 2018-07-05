@@ -23,4 +23,4 @@ npm update
 
 Websocket launch:
 
-nohup node server.js &
+nohup node server.js 6789 &

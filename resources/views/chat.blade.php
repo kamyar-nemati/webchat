@@ -7,8 +7,10 @@
             <div class="panel panel-default">
                 <div class="panel-heading">Conversation with {{ $contact_name }}</div>
 
+                {{-- websocket host --}}
                 <input type="hidden" id="sock_url" value="{{ config('app.socket_url', '') }}">
                 <input type="hidden" id="sock_port" value="{{ config('app.socket_port', '') }}">
+                {{-- user and recipient unique id --}}
                 <input type="hidden" id="user_uuid" value="{{ $user_uuid }}">
                 <input type="hidden" id="rcpt_uuid" value="{{ $rcpt_uuid }}">
 
@@ -36,4 +38,4 @@
 <!-- socket.io library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
 <!-- custom javascript -->
-<script src="{{ asset('js/chat_page.js') }}"></script>
+<script src="{{ asset('js/chat_view.js') }}"></script>
