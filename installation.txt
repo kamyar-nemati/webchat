@@ -9,7 +9,6 @@ under
     location / {
 
 Database configuration:
-
 create database webchatdb;
 create user webchatuser identified by 'abc123';
 grant insert,select,update,delete on webchatdb.* to webchatuser;
@@ -17,10 +16,13 @@ create user webchatadmin identified by 'abcd1234';
 grant all on webchatdb.* to webchatadmin;
 
 Project installation:
-
 composer update
 npm update
 
-Websocket launch:
+Bootstrap 4 Installation:
+composer require laravelnews/laravel-twbs4
+php artisan preset bootstrap4-auth
+npm install npm run dev
 
+Websocket launch:
 nohup node server.js 6789 &
