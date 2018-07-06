@@ -41,8 +41,6 @@ $(document).ready(function() {
 
     // 'joined' event handler
     socket.on('joined', (object) => {
-        var socket_id = object.socket_id;
-        
         enable_conversation_components();
     });
 
@@ -105,5 +103,15 @@ $(document).ready(function() {
 
         // clear the message textbox
         text_message_box.val('');
+    });
+
+    // 'disconnect' event handler
+    socket.on('disconnect', () => {
+        disable_conversation_components();
+    });
+
+    // 'reconnect' event handler
+    socket.on('reconnect', (attemptNumber) => {
+        enable_conversation_components();
     });
 });
