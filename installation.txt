@@ -1,12 +1,11 @@
 
-Web server pre-requisites:
+Server pre-requisites:
 php nginx mysql nodejs
 
-Web server configuration:
-put
-    try_files $uri $uri/ /index.php?/$request_uri;
-under
-    location / {
+Web Server configuration:
+location / {
+    try_files $uri $uri/ /index.php?$query_string;
+}
 
 Database configuration:
 create database webchatdb;
@@ -16,8 +15,8 @@ create user webchatadmin identified by 'abcd1234';
 grant all on webchatdb.* to webchatadmin;
 
 Project installation:
-composer update
-npm update
+composer install
+npm install
 
 Bootstrap 4 Installation:
 composer require laravelnews/laravel-twbs4
@@ -27,6 +26,6 @@ npm install npm run dev
 Websocket launch:
 nohup node server.js 6789 &
 
-Env file add settings:
+Env file settings:
 SOCK_URL=http://localhost
 SOCK_PORT=6789
