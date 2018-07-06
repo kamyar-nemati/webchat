@@ -26,3 +26,7 @@ npm install npm run dev
 
 Websocket launch:
 nohup node server.js 6789 &
+
+Env file add settings:
+SOCK_URL=http://localhost
+SOCK_PORT=6789
