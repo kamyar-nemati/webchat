@@ -36,8 +36,6 @@
 </div>
 @endsection
 
-<!-- jquery library -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
 <!-- socket.io library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
 <!-- custom javascript -->

@@ -29,9 +29,7 @@ io.on('connection', (socket) => {
         console.log('Client joined: ' + client_uuid);
 
         // join acknowledgement
-        socket.emit('joined', {
-            socket_id: socket.id
-        });
+        socket.emit('joined', {});
     });
 
     // 'new_msg' event handler
