@@ -78,8 +78,8 @@ $(document).ready(function() {
         );
     };
 
-    // send new message
-    send_message_btn.click(function() {
+    // new message function
+    function send_message() {
         var message = text_message_box.val();
 
         // abort on empty message
@@ -103,6 +103,21 @@ $(document).ready(function() {
 
         // clear the message textbox
         text_message_box.val('');
+    }
+
+    // send new message
+    send_message_btn.click(function() {
+        send_message();
+    });
+
+    $('#text_message_box').keypress(function(e) {
+        var keyCode = e.keyCode;
+        var enterKeyCode = 13;
+
+        if (keyCode === enterKeyCode)
+        {
+            send_message();
+        }
     });
 
     // 'disconnect' event handler

@@ -24,8 +24,12 @@
                     
                 </div>
                 <div class="panel-footer">
-                    <input id="text_message_box" type="text">
-                    <button id="send_message_btn">Send</button>
+                    <div class="input-group">
+                        <input id="text_message_box" type="text" class="form-control" placeholder="Type your message here&hellip;">
+                        <span class="input-group-btn">
+                            <button id="send_message_btn" type="button" class="btn btn-default">Send</button>
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
