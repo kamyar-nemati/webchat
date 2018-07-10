@@ -15,13 +15,10 @@ create user webchatadmin identified by 'abcd1234';
 grant all on webchatdb.* to webchatadmin;
 
 Project installation:
+npm init
+npm update
 composer install
-npm install
-
-Bootstrap 4 Installation:
-composer require laravelnews/laravel-twbs4
-php artisan preset bootstrap4-auth
-npm install npm run dev
+composer update
 
 Websocket launch:
 nohup node server.js 6789 &
