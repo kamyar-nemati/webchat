@@ -77,7 +77,7 @@ class RegisterController extends Controller
         }
         catch (UnsatisfiedDependencyException $ex)
         {
-            return FALSE;
+            return $ex;
         }
 
         return User::create([
