@@ -19,4 +19,6 @@ Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
 
-Route::get('/chat/{user_uuid}/{rcpt_uuid}', 'ChatController@index');
+Route::get('/chat/{sender_uuid}/{receiver_uuid}', 'ChatController@index');
+
+Route::post('/chat/store', 'ChatController@store');

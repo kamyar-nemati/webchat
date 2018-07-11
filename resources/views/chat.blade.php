@@ -5,14 +5,16 @@
     <div class="row">
         <div class="col-md-8 col-md-offset-2">
             <div class="panel panel-default">
-                <div class="panel-heading">Conversation with {{ $contact_name }}</div>
+                <div class="panel-heading">Conversation with {{ $receiver_name }}</div>
 
+                {{-- csrf token --}}
+                <input type="hidden" id="csrf-token" value="{{ csrf_token() }}">
                 {{-- websocket host --}}
-                <input type="hidden" id="sock_url" value="{{ config('app.socket_url', '') }}">
-                <input type="hidden" id="sock_port" value="{{ config('app.socket_port', '') }}">
+                <input type="hidden" id="socket_url" value="{{ config('app.socket_url', '') }}">
+                <input type="hidden" id="socket_port" value="{{ config('app.socket_port', '') }}">
                 {{-- user and recipient unique id --}}
-                <input type="hidden" id="user_uuid" value="{{ $user_uuid }}">
-                <input type="hidden" id="rcpt_uuid" value="{{ $rcpt_uuid }}">
+                <input type="hidden" id="sender_uuid" value="{{ $sender_uuid }}">
+                <input type="hidden" id="receiver_uuid" value="{{ $receiver_uuid }}">
 
                 <div class="panel-body conversation_panel" id="conversation_body">
                     @if (session('status'))
