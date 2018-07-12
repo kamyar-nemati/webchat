@@ -10,6 +10,7 @@ use Ramsey\Uuid\Exception\UnsatisfiedDependencyException;
 
 use App\User;
 use App\Chat;
+use Carbon\Carbon;
 
 class ChatController extends Controller
 {
@@ -83,7 +84,26 @@ class ChatController extends Controller
             ];
         }
 
-        // TODO: save message into database
+        // get references
+        $sender_user_id = User::where('uuid', '=', $sender_uuid)
+                ->get(['id'])
+                ->first()
+                ->toArray()['id'];
+
+        $receiver_user_id = User::where('uuid', '=', $receiver_uuid)
+                ->get(['id'])
+                ->first()
+                ->toArray()['id'];
+
+        // save message into database
+        $chat = Chat::create([
+            'uuid' => $message_uuid,
+            'message' => $message,
+            'sender_user_id' => $sender_user_id,
+            'receiver_user_id' => $receiver_user_id,
+        ]);
+
+        // TODO: check chat create before return
         
         return [
             'stat' => 0,
@@ -120,9 +140,20 @@ class ChatController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id = NULL)
     {
-        //
+        $message_uuid = $request->message_uuid;
+
+        // update message delivery status
+        Chat::where('uuid', '=', $message_uuid)
+                ->update([
+                    'delivered' => true,
+                    'delivered_at' => Carbon::now(),
+                ]);
+
+        return [
+            'stat' => 0,
+        ];
     }
 
     /**

@@ -36,12 +36,14 @@ io.on('connection', (socket) => {
     socket.on('new_msg', (object) => {
         console.log('New message received ' + JSON.stringify(object));
 
+        var message_uuid = object.message_uuid;
         var message = object.message;
         var recipient = object.recipient;
 
         // deliver message to recipient
         console.log('Broadcasting message to: ' + recipient);
         io.to(recipient).emit('new_msg', {
+            message_uuid: message_uuid,
             message: message,
             sender: socket.username
         });

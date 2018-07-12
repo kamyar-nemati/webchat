@@ -14,7 +14,7 @@
     $.ChatAgent.Dom.text_message_box = null;
     $.ChatAgent.Dom.send_message_btn = null;
 
-    // the socket
+    // websocket
     $.ChatAgent.Socket = null;
 
     // cross site request forgery token
@@ -24,7 +24,7 @@
     $.ChatAgent.socket_url = null;
     $.ChatAgent.socket_port = null;
 
-    // user and recipient uuid
+    // sender and receiver uuid
     $.ChatAgent.sender_uuid = null;
     $.ChatAgent.receiver_uuid = null;
 
@@ -76,27 +76,37 @@
 
         // save message
         $.ajax({
-            url: "/chat/store",
-            type: "POST",
+            url: '/chat/store',
+            type: 'POST',
             headers: {
-                "X-CSRF-TOKEN": $.ChatAgent.csrf_token
+                'X-CSRF-TOKEN': $.ChatAgent.csrf_token
             },
             data: {
-                "message": message,
-                "sender_uuid": $.ChatAgent.sender_uuid,
-                "receiver_uuid": $.ChatAgent.receiver_uuid
+                'message': message,
+                'sender_uuid': $.ChatAgent.sender_uuid,
+                'receiver_uuid': $.ChatAgent.receiver_uuid
             },
             success: function(data, textStatus, jqXHR) {
+                // abort send on failure
+                if (data.stat !== 0)
+                {
+                    return false;
+                }
+
+                // get message uuid
+                var message_uuid = data.message_uuid;
+
                 console.log('Sending new message');
 
                 // send (broadcast) message
                 $.ChatAgent.Socket.emit('new_msg', {
+                    message_uuid: message_uuid,
                     message: message,
                     recipient: $.ChatAgent.receiver_uuid
                 });
 
-                // add message to conversation body
-                $.ChatAgent.Dom.conversation_body.append("<p class='message_box message_box_you'>" + message + "</p><br/><br/><br/>");
+                // append message to conversation body
+                $.ChatAgent.Dom.conversation_body.append('<p class="message_box message_box_you">' + message + '</p><br/><br/><br/>');
 
                 $.ChatAgent.scroll_down_conversation_body();
 
@@ -106,7 +116,9 @@
         });
     }
 
+    // chat agent launcher
     $.ChatAgent.launch = function() {
+        // launch once
         if (this.launched)
         {
             return false;
@@ -138,6 +150,7 @@
 
         // 'joined' event handler
         this.Socket.on('joined', (object) => {
+            // enable chat components on success join
             this.enable_conversation_components();
         });
 
@@ -145,15 +158,34 @@
         this.Socket.on('new_msg', (object) => {
             console.log('New message received ' + JSON.stringify(object));
 
+            var message_uuid = object.message_uuid;
             var message = object.message;
             var sender = object.sender;
 
-            // user is interested in messages from recipient only
-            if (sender === this.receiver_uuid)
-            {
-                // add received message to conversation body
-                this.Dom.conversation_body.append("<p class='message_box message_box_them'>" + message + "</p><br/><br/><br/>");
-            }
+            // mark message as delivered
+            $.ajax({
+                url: '/chat/update',
+                method: 'PATCH',
+                headers: {
+                    'X-CSRF-TOKEN': $.ChatAgent.csrf_token
+                },
+                data: {
+                    message_uuid: message_uuid
+                },
+                success: function(data, textStatus, jqXHR) {
+                    // abort on failure
+                    if (data.stat !== 0)
+                    {
+                        return false;
+                    }
+                    // user is interested in messages from recipient only
+                    if (sender === this.receiver_uuid)
+                    {
+                        // add received message to conversation body
+                        $.ChatAgent.Dom.conversation_body.append('<p class="message_box message_box_them">' + message + '</p><br/><br/><br/>');
+                    }
+                }
+            });
         });
 
         // 'disconnect' event handler
@@ -175,6 +207,7 @@
         this.launched = true;
     }
 
+    // entry point
     $(document).ready(function() {
         /**
          * Initializing the Chat Agent

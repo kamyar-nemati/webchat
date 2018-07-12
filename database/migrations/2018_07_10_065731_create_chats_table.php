@@ -27,12 +27,12 @@ class CreateChatsTable extends Migration
             $table->foreign('sender_user_id')->references('id')->on('users');
 
             // receiver fk
-            $table->integer('recipient_user_id')->unsigned();
-            $table->foreign('recipient_user_id')->references('id')->on('users');
+            $table->integer('receiver_user_id')->unsigned();
+            $table->foreign('receiver_user_id')->references('id')->on('users');
 
             // delivery status
             $table->boolean('delivered')->default(false);
-            $table->timestampTz('delivered_at')->useCurrent();
+            $table->timestampTz('delivered_at')->nullable();
 
             $table->timestamps();
         });

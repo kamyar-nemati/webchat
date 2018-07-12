@@ -12,7 +12,7 @@
                 {{-- websocket host --}}
                 <input type="hidden" id="socket_url" value="{{ config('app.socket_url', '') }}">
                 <input type="hidden" id="socket_port" value="{{ config('app.socket_port', '') }}">
-                {{-- user and recipient unique id --}}
+                {{-- sender and receiver unique id --}}
                 <input type="hidden" id="sender_uuid" value="{{ $sender_uuid }}">
                 <input type="hidden" id="receiver_uuid" value="{{ $receiver_uuid }}">
 
