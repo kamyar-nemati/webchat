@@ -179,7 +179,7 @@
                         return false;
                     }
                     // user is interested in messages from recipient only
-                    if (sender === this.receiver_uuid)
+                    if (sender === $.ChatAgent.receiver_uuid)
                     {
                         // add received message to conversation body
                         $.ChatAgent.Dom.conversation_body.append('<p class="message_box message_box_them">' + message + '</p><br/><br/><br/>');
