@@ -33,15 +33,16 @@ class ChatController extends Controller
         }
 
         // get contact's name
-        $receiver_name = User::where('uuid', '=', $receiver_uuid)
-                ->get(['name'])
+        $receiver_info = User::where('uuid', '=', $receiver_uuid)
+                ->get(['alias', 'name'])
                 ->first()
-                ->toArray()['name'];
+                ->toArray();
 
         return view('chat', [
             'sender_uuid' => $sender_uuid,
             'receiver_uuid' => $receiver_uuid,
-            'receiver_name' => $receiver_name,
+            'receiver_alias' => $receiver_info['alias'],
+            'receiver_name' => $receiver_info['name'],
         ]);
     }
 
