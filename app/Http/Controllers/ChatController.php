@@ -34,14 +34,14 @@ class ChatController extends Controller
 
         // get contact's name
         $receiver_info = User::where('uuid', '=', $receiver_uuid)
-                ->get(['alias', 'name'])
+                ->get(['profile_id', 'name'])
                 ->first()
                 ->toArray();
 
         return view('chat', [
             'sender_uuid' => $sender_uuid,
             'receiver_uuid' => $receiver_uuid,
-            'receiver_alias' => $receiver_info['alias'],
+            'receiver_profile_id' => $receiver_info['profile_id'],
             'receiver_name' => $receiver_info['name'],
         ]);
     }

@@ -5,7 +5,7 @@
     <div class="row">
         <div class="col-md-8 col-md-offset-2">
             <div class="panel panel-default">
-                <div class="panel-heading">Conversation with {{ $receiver_name }}&nbsp;({{ $receiver_alias }})</div>
+                <div class="panel-heading">Conversation with {{ $receiver_name }}&nbsp;({{ $receiver_profile_id }})</div>
 
                 {{-- csrf token --}}
                 <input type="hidden" id="csrf-token" value="{{ csrf_token() }}">

@@ -29,7 +29,7 @@ class HomeController extends Controller
     {
         // get all other registered users as contacts
         $contacts = User::where('uuid', '<>', Auth::user()->uuid)
-                ->get(['uuid', 'alias', 'name'])
+                ->get(['uuid', 'profile_id', 'name'])
                 ->toArray();
 
         return view('home', ['contacts' => $contacts]);
