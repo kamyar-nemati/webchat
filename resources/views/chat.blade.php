@@ -32,6 +32,9 @@
                             <button id="send_message_btn" type="button" class="btn btn-default">Send</button>
                         </span>
                     </div>
+                    <div id="status_panel" class="panel_status">
+                        
+                    </div>
                 </div>
             </div>
         </div>

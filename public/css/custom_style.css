@@ -49,3 +49,7 @@
 .contact_panel {
     text-align: center;
 }
+
+.panel_status {
+    color: red;
+}

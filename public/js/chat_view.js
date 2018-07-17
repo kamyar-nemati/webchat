@@ -13,6 +13,7 @@
     $.ChatAgent.Dom.conversation_body = null;
     $.ChatAgent.Dom.text_message_box = null;
     $.ChatAgent.Dom.send_message_btn = null;
+    $.ChatAgent.Dom.status_panel = null;
 
     // websocket
     $.ChatAgent.Socket = null;
@@ -29,6 +30,7 @@
     $.ChatAgent.receiver_uuid = null;
 
     $.ChatAgent.launched = false;
+    $.ChatAgent.disrupted = false;
 
     // socket server end point
     $.ChatAgent.get_socket_end_point = function() {
@@ -58,6 +60,29 @@
         this.Dom.conversation_body.removeAttr('disabled');
         this.Dom.text_message_box.removeAttr('disabled');
         this.Dom.send_message_btn.removeAttr('disabled');
+    }
+
+    $.ChatAgent.start_act_disrupted = function() {
+        this.disrupted = true;
+
+        this.disable_conversation_components();
+
+        var status_str = 'Attempting to connect to websocket';
+        this.Dom.status_panel.text(status_str);
+    }
+
+    $.ChatAgent.continue_act_disrupted = function() {
+        var status_str = this.Dom.status_panel.text();
+        status_str += '.';
+        this.Dom.status_panel.text(status_str);
+    }
+
+    $.ChatAgent.stop_act_disrupted = function() {
+        this.disrupted = false;
+
+        this.Dom.status_panel.text('');
+
+        this.enable_conversation_components();
     }
 
     $.ChatAgent.get_message = function() {
@@ -140,7 +165,7 @@
             }
         });
         
-        this.disable_conversation_components();
+        this.start_act_disrupted();
 
         var socket_end_point = this.get_socket_end_point();
 
@@ -151,7 +176,7 @@
         // 'joined' event handler
         this.Socket.on('joined', (object) => {
             // enable chat components on success join
-            this.enable_conversation_components();
+            this.stop_act_disrupted();
         });
 
         // 'new_msg' event handler
@@ -190,12 +215,17 @@
 
         // 'disconnect' event handler
         this.Socket.on('disconnect', () => {
-            this.disable_conversation_components();
+            this.start_act_disrupted();
+        });
+
+        // 'reconnecting' event handler
+        this.Socket.on('reconnecting', (attemptNumber) => {
+            this.continue_act_disrupted();
         });
 
         // 'reconnect' event handler
         this.Socket.on('reconnect', (attemptNumber) => {
-            this.enable_conversation_components();
+            this.stop_act_disrupted();
         });
 
         // join room
@@ -215,6 +245,7 @@
         $.ChatAgent.Dom.conversation_body = $('#conversation_body');
         $.ChatAgent.Dom.text_message_box = $('#text_message_box');
         $.ChatAgent.Dom.send_message_btn = $('#send_message_btn');
+        $.ChatAgent.Dom.status_panel = $('#status_panel');
     
         $.ChatAgent.csrf_token = $('#csrf-token').val();
         
