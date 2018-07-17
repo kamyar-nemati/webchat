@@ -13,10 +13,11 @@
                             {{ session('status') }}
                         </div>
                     @endif
-
-                    @foreach ($contacts as $contact)
-                        <p><a href="{{ url('/chat') }}/{{ Auth::user()->uuid }}/{{ $contact['uuid'] }}">{{ $contact['alias'] }},&nbsp;{{ $contact['name'] }}</a></p>
-                    @endforeach
+                    <div class="contact_panel">
+                        @foreach ($contacts as $contact)
+                            <a class="contact_button contact_button_grey" href="{{ url('/chat') }}/{{ Auth::user()->uuid }}/{{ $contact['uuid'] }}">{{ $contact['name'] }}&nbsp;({{ $contact['alias'] }})</a>
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>
