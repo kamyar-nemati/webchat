@@ -32,7 +32,7 @@ class HomeController extends Controller
                 ->get(['uuid', 'profile_id', 'name'])
                 ->toArray();
 
-        // sort
+        // sort contacts
         usort($contacts, function(&$left, &$right) {
             return strnatcasecmp($left['name'], $right['name']);
         });

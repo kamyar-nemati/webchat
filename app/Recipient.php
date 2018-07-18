@@ -4,9 +4,9 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Chat extends Model
+class Recipient extends Model
 {
     protected $fillable = [
-        'uuid', 'message', 'user_id',
+        'chat_id', 'user_id', 'delivered',
     ];
 }

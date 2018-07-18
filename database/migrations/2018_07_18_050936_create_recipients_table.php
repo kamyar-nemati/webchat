@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateChatsTable extends Migration
+class CreateRecipientsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,21 +13,26 @@ class CreateChatsTable extends Migration
      */
     public function up()
     {
-        Schema::create('chats', function (Blueprint $table) {
+        Schema::create('recipients', function (Blueprint $table) {
             $table->bigIncrements('id');
+            
+            // chat fk
+            $table->unsignedBigInteger('chat_id');
+            $table->foreign('chat_id')
+                    ->references('id')
+                    ->on('chats')
+                    ->onDelete('cascade');
 
-            // message uuid
-            $table->uuid('uuid')->unique();
-
-            // message
-            $table->text('message');
-
-            // sender fk
+            // receiver fk
             $table->unsignedInteger('user_id');
             $table->foreign('user_id')
                     ->references('id')
                     ->on('users')
                     ->onDelete('cascade');
+
+            // delivery status
+            $table->boolean('delivered')->default(false);
+            $table->timestampTz('delivered_at')->nullable();
 
             $table->timestamps();
         });
@@ -40,6 +45,6 @@ class CreateChatsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('chats');
+        Schema::dropIfExists('recipients');
     }
 }

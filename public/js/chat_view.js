@@ -200,6 +200,7 @@
                     'X-CSRF-TOKEN': $.ChatAgent.csrf_token
                 },
                 data: {
+                    recipient_uuid: $.ChatAgent.sender_uuid,
                     message_uuid: message_uuid
                 },
                 success: function(data, textStatus, jqXHR) {
