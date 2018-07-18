@@ -63,24 +63,29 @@
     }
 
     $.ChatAgent.start_act_disrupted = function() {
-        this.disrupted = true;
-
         this.disable_conversation_components();
+
+        this.disrupted = true;
 
         var status_str = 'Attempting to connect to websocket';
         this.Dom.status_panel.text(status_str);
     }
 
     $.ChatAgent.continue_act_disrupted = function() {
+        if (!this.disrupted)
+        {
+            return;
+        }
+
         var status_str = this.Dom.status_panel.text();
         status_str += '.';
         this.Dom.status_panel.text(status_str);
     }
 
     $.ChatAgent.stop_act_disrupted = function() {
-        this.disrupted = false;
-
         this.Dom.status_panel.text('');
+
+        this.disrupted = false;
 
         this.enable_conversation_components();
     }
