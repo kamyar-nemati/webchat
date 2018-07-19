@@ -90,6 +90,63 @@
         this.enable_conversation_components();
     }
 
+    // message delivery status update function
+    $.ChatAgent.update_message_delivery_status = function(input_data, callBack) {
+        // callBack data
+        var returned_callBack;
+
+        $.ajax({
+            url: '/chat/update',
+            method: 'PATCH',
+            async: false, // to wait for callBack returned data
+            headers: {
+                'X-CSRF-TOKEN': $.ChatAgent.csrf_token
+            },
+            data: input_data,
+            success: function(data, textStatus, jqXHR) {
+                returned_callBack = callBack(data, textStatus, jqXHR);
+            }
+        });
+
+        return returned_callBack;
+    };
+
+    // new message processing function
+    $.ChatAgent.process_new_message = function(message_uuid, message, sender, callBack) {
+        // process status
+        var success = false;
+
+        // user is interested in messages from recipient only
+        if (sender === this.receiver_uuid)
+        {
+            var input_data = {
+                delivered_messages: [
+                    {
+                        recipient_uuid: this.sender_uuid,
+                        message_uuid: message_uuid
+                    }
+                ]
+            };
+            
+            // mark message as delivered
+            success = this.update_message_delivery_status(input_data, function(data, textStatus, jqXHR) {
+                // abort on failure
+                if (data.stat !== 0)
+                {
+                    return false;
+                }
+
+                // add received message to conversation body
+                $.ChatAgent.Dom.conversation_body.append('<p class="message_box message_box_them">' + message + '</p><br/><br/><br/>');
+
+                return true;
+            });
+        }
+
+        // return process status
+        callBack(success);
+    };
+
     $.ChatAgent.get_message = function() {
         return this.Dom.text_message_box.val();
     }
@@ -191,32 +248,8 @@
             var message_uuid = object.message_uuid;
             var message = object.message;
             var sender = object.sender;
-
-            // mark message as delivered
-            $.ajax({
-                url: '/chat/update',
-                method: 'PATCH',
-                headers: {
-                    'X-CSRF-TOKEN': $.ChatAgent.csrf_token
-                },
-                data: {
-                    recipient_uuid: $.ChatAgent.sender_uuid,
-                    message_uuid: message_uuid
-                },
-                success: function(data, textStatus, jqXHR) {
-                    // abort on failure
-                    if (data.stat !== 0)
-                    {
-                        return false;
-                    }
-                    // user is interested in messages from recipient only
-                    if (sender === $.ChatAgent.receiver_uuid)
-                    {
-                        // add received message to conversation body
-                        $.ChatAgent.Dom.conversation_body.append('<p class="message_box message_box_them">' + message + '</p><br/><br/><br/>');
-                    }
-                }
-            });
+            
+            this.process_new_message(message_uuid, message, sender, function(success) {});
         });
 
         // 'disconnect' event handler
@@ -234,12 +267,35 @@
             this.stop_act_disrupted();
         });
 
+        // poll new messages before joining
+        $.ajax({
+            url: '/chat/poll',
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': $.ChatAgent.csrf_token
+            },
+            data: {
+                recipient_uuid: $.ChatAgent.sender_uuid
+            },
+            success: function(data, textStatus, jqXHR) {
+                // loop through missed messages
+                data.forEach(messageObject => {
+                    // message data
+                    var message_uuid = messageObject.message_uuid;
+                    var message = messageObject.message;
+                    var sender = messageObject.sender;
+
+                    $.ChatAgent.process_new_message(message_uuid, message, sender, function(success) {});
+                });
+            }
+        });
+
         // join room
         console.log('Joining room');
         this.Socket.emit('join', {
             client_uuid: this.sender_uuid
         });
-
+        
         this.launched = true;
     }
 

@@ -24,3 +24,5 @@ Route::get('/chat/{sender_uuid}/{receiver_uuid}', 'ChatController@index');
 Route::post('/chat/store', 'ChatController@store');
 
 Route::match(['patch', 'put'], 'chat/update/{id?}', 'ChatController@update');
+
+Route::get('/chat/poll', 'ChatController@poll');

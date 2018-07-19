@@ -173,40 +173,45 @@ class ChatController extends Controller
      */
     public function update(Request $request, $id = NULL)
     {
-        $recipient_uuid = $request->recipient_uuid;
-        $message_uuid = $request->message_uuid;
+        $delivered_messages = $request->delivered_messages;
 
         // begin transaction
         DB::beginTransaction();
 
-        try
+        foreach ($delivered_messages as &$delivered_message)
         {
-            // get recipient id
-            $recipient_id = Recipient::join('users', 'users.id', '=', 'recipients.user_id')
-                    ->join('chats', 'chats.id', '=', 'recipients.chat_id')
-                    ->where('users.uuid', '=', $recipient_uuid)
-                    ->where('chats.uuid', '=', $message_uuid)
-                    ->get(['recipients.id'])
-                    ->first()
-                    ->toArray()['id'];
+            $recipient_uuid = $delivered_message['recipient_uuid'];
+            $message_uuid = $delivered_message['message_uuid'];
             
-            // update recipient message delivery status
-            Recipient::where('id', '=', $recipient_id)
-                    ->update([
-                        'delivered' => true,
-                        'delivered_at' => Carbon::now(),
-                    ]);
-        }
-        catch (QueryException $ex)
-        {
-            // roll back transaction
-            DB::rollBack();
+            try
+            {
+                // get recipient id
+                $recipient_id = Recipient::join('users', 'users.id', '=', 'recipients.user_id')
+                        ->join('chats', 'chats.id', '=', 'recipients.chat_id')
+                        ->where('users.uuid', '=', $recipient_uuid)
+                        ->where('chats.uuid', '=', $message_uuid)
+                        ->get(['recipients.id'])
+                        ->first()
+                        ->toArray()['id'];
+                
+                // update recipient message delivery status
+                Recipient::where('id', '=', $recipient_id)
+                        ->update([
+                            'delivered' => true,
+                            'delivered_at' => Carbon::now(),
+                        ]);
+            }
+            catch (QueryException $ex)
+            {
+                // roll back transaction
+                DB::rollBack();
 
-            // abort
-            return [
-                'stat' => -1,
-                'msg' => $ex->getMessage(),
-            ];
+                // abort
+                return [
+                    'stat' => -1,
+                    'msg' => $ex->getMessage(),
+                ];
+            }
         }
 
         // commit transaction
@@ -226,5 +231,52 @@ class ChatController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function poll(Request $request)
+    {
+        $recipient_uuid = $request->recipient_uuid;
+
+        // find last delivery
+        $last_delivery_recipient = Recipient::join('users', 'users.id', '=', 'recipients.user_id')
+                ->where('users.uuid', '=', $recipient_uuid)
+                ->where('delivered', '=', true)
+                ->orderBy('delivered_at', 'desc')
+                ->get(['recipients.id'])
+                ->first();
+
+        // abort if nothing found
+        if (!$last_delivery_recipient)
+        {
+            return [];
+        }
+
+        $last_delivery_recipient_id = $last_delivery_recipient->toArray()['id'];
+
+        // get non-delivered messages
+        $messages = Chat::join('recipients', 'recipients.chat_id', '=', 'chats.id')
+                ->join('users', 'users.id', '=', 'recipients.user_id')
+                ->where('users.uuid', '=', $recipient_uuid)
+                ->where('recipients.id', '>', $last_delivery_recipient_id)
+                ->orderBy('recipients.created_at', 'asc')
+                ->get(['chats.uuid AS message_uuid', 'chats.message', 'chats.user_id'])
+                ->toArray();
+
+        // replace sender user_id with uuid
+        foreach ($messages as &$message)
+        {
+            $sender_id =& $message['user_id'];
+
+            $sender_uuid = User::where('id', '=', $sender_id)
+                    ->get(['uuid'])
+                    ->first()
+                    ->toArray()['uuid'];
+
+            unset($message['user_id']);
+
+            $message['sender'] = $sender_uuid;
+        }
+
+        return $messages;
     }
 }
