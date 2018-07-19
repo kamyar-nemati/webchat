@@ -271,6 +271,7 @@
         $.ajax({
             url: '/chat/poll',
             method: 'GET',
+            async: false,
             headers: {
                 'X-CSRF-TOKEN': $.ChatAgent.csrf_token
             },
