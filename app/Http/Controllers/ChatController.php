@@ -17,6 +17,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 
+use Illuminate\Support\Facades\Auth;
+
 class ChatController extends Controller
 {
     public function __construct()
@@ -31,7 +33,15 @@ class ChatController extends Controller
      */
     public function index($sender_uuid, $receiver_uuid)
     {
-        // do not route to self-chat page
+        $user_uuid = Auth::user()['uuid'];
+
+        // do not allow impersonation
+        if ($sender_uuid !== $user_uuid)
+        {
+            abort(404);
+        }
+
+        // do not allow self-chat
         if ($sender_uuid === $receiver_uuid)
         {
             abort(404);
