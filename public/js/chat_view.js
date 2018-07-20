@@ -117,7 +117,7 @@
     $.ChatAgent.update_message_delivery_status = function(input_data, callBack) {
         // callBack data
         var returned_callBack;
-
+        
         $.ajax({
             url: '/chat/update',
             method: 'PATCH',
@@ -158,7 +158,7 @@
                 {
                     return false;
                 }
-
+                
                 // add received message to conversation body
                 $.ChatAgent.print_message(message, $.ChatAgent.Dom.conversation_body, Formatter);
                 
@@ -205,9 +205,7 @@
 
                 // get message uuid
                 var message_uuid = data.message_uuid;
-
-                console.log('Sending new message');
-
+                
                 // send (broadcast) message
                 $.ChatAgent.Socket.emit('new_msg', {
                     message_uuid: message_uuid,
@@ -233,7 +231,7 @@
         {
             return false;
         }
-
+        
         // trigger new message on click
         this.Dom.send_message_btn.click(function() {
             $.ChatAgent.send_message();
@@ -255,19 +253,16 @@
         var socket_end_point = this.get_socket_end_point();
 
         // establish websocket connection
-        console.log('Connecting websocket ' + socket_end_point);
         this.Socket = io.connect(socket_end_point);
 
-        // 'joined' event handler
+        // custom 'joined' event handler
         this.Socket.on('joined', (object) => {
             // enable chat components on success join
             this.stop_act_disrupted();
         });
 
-        // 'new_msg' event handler
+        // custom 'new_msg' event handler
         this.Socket.on('new_msg', (object) => {
-            console.log('New message received ' + JSON.stringify(object));
-
             var message_uuid = object.message_uuid;
             var message = object.message;
             var sender = object.sender;
@@ -319,7 +314,6 @@
         });
 
         // join room
-        console.log('Joining room');
         this.Socket.emit('join', {
             client_uuid: this.sender_uuid
         });
