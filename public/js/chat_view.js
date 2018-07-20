@@ -15,6 +15,12 @@
     $.ChatAgent.Dom.send_message_btn = null;
     $.ChatAgent.Dom.status_panel = null;
 
+    // message formatter object model
+    $.ChatAgent.Formatter = {};
+    $.ChatAgent.Formatter.NewMessage = {};
+    $.ChatAgent.Formatter.NewIncomingMessage = {};
+    $.ChatAgent.Formatter.NewIncomingMissedMessage = {};
+
     // websocket
     $.ChatAgent.Socket = null;
 
@@ -31,6 +37,19 @@
 
     $.ChatAgent.launched = false;
     $.ChatAgent.disrupted = false;
+
+    // message formatter object implementation
+    $.ChatAgent.Formatter.NewMessage.format = function(message) {
+        return '<p class="message_box message_box_you">' + message + '</p><br/><br/><br/>';
+    }
+
+    $.ChatAgent.Formatter.NewIncomingMessage.format = function(message) {
+        return '<p class="message_box message_box_them">' + message + '</p><br/><br/><br/>';
+    }
+
+    $.ChatAgent.Formatter.NewIncomingMissedMessage.format = function(message) {
+        return '<p class="message_box message_box_them message_box_new">' + message + '</p><br/><br/><br/>';
+    }
 
     // socket server end point
     $.ChatAgent.get_socket_end_point = function() {
@@ -90,6 +109,10 @@
         this.enable_conversation_components();
     }
 
+    $.ChatAgent.print_message = function(message, paper, Formatter) {
+        paper.append(Formatter.format(message));
+    }
+
     // message delivery status update function
     $.ChatAgent.update_message_delivery_status = function(input_data, callBack) {
         // callBack data
@@ -112,7 +135,7 @@
     };
 
     // new message processing function
-    $.ChatAgent.process_new_message = function(message_uuid, message, sender, callBack) {
+    $.ChatAgent.process_new_message = function(message_uuid, message, sender, Formatter, callBack) {
         // process status
         var success = false;
 
@@ -137,8 +160,8 @@
                 }
 
                 // add received message to conversation body
-                $.ChatAgent.Dom.conversation_body.append('<p class="message_box message_box_them">' + message + '</p><br/><br/><br/>');
-
+                $.ChatAgent.print_message(message, $.ChatAgent.Dom.conversation_body, Formatter);
+                
                 return true;
             });
         }
@@ -193,8 +216,8 @@
                 });
 
                 // append message to conversation body
-                $.ChatAgent.Dom.conversation_body.append('<p class="message_box message_box_you">' + message + '</p><br/><br/><br/>');
-
+                $.ChatAgent.print_message(message, $.ChatAgent.Dom.conversation_body, $.ChatAgent.Formatter.NewMessage);
+                
                 $.ChatAgent.scroll_down_conversation_body();
 
                 // clear the message textbox
@@ -248,8 +271,10 @@
             var message_uuid = object.message_uuid;
             var message = object.message;
             var sender = object.sender;
+
+            var formatter = this.Formatter.NewIncomingMessage;
             
-            this.process_new_message(message_uuid, message, sender, function(success) {});
+            this.process_new_message(message_uuid, message, sender, formatter, function(success) {});
         });
 
         // 'disconnect' event handler
@@ -286,7 +311,9 @@
                     var message = messageObject.message;
                     var sender = messageObject.sender;
 
-                    $.ChatAgent.process_new_message(message_uuid, message, sender, function(success) {});
+                    var formatter = $.ChatAgent.Formatter.NewIncomingMissedMessage;
+
+                    $.ChatAgent.process_new_message(message_uuid, message, sender, formatter, function(success) {});
                 });
             }
         });

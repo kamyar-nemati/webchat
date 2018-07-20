@@ -11,13 +11,17 @@
 
 .message_box_you {
     border-radius: 10px 0px 10px 10px;
-    border: 2px solid #73AD21;
+    border: 2px solid #80c020;
     float: right;
 }
 
 .message_box_them {
     border-radius: 0px 10px 10px 10px;
-    border: 2px solid #e7e7e7;
+    border: 2px solid #e6e6e6;
+}
+
+.message_box_new {
+    border: 2px solid #c0c020 !important;
 }
 
 .contact_button {
