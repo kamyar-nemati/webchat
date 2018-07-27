@@ -257,7 +257,7 @@
 
         // custom 'joined' event handler
         this.Socket.on('joined', (object) => {
-            // enable chat components on success join
+            // enable chat components on successful join
             this.stop_act_disrupted();
         });
 
