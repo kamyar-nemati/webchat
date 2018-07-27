@@ -4,6 +4,11 @@
     overflow: scroll;
 }
 
+.task_list_panel {
+    height: 65%;
+    overflow: scroll;
+}
+
 .message_box {
     padding: 5px 15px 5px 15px;
     display: inline-block;
