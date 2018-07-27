@@ -183,6 +183,8 @@ class ChatController extends Controller
      */
     public function update(Request $request, $id = NULL)
     {
+        // TODO: remove transaction lock as it make unpredicted behaviour on delivery update
+
         $delivered_messages = $request->delivered_messages;
 
         // begin transaction
@@ -245,7 +247,7 @@ class ChatController extends Controller
 
     public function poll(Request $request)
     {
-        // TODO: poll doesn't function properly on getting missed messages if there was not messages before
+        // TODO: poll doesn't function properly on getting missed messages if there was no messages before
 
         $recipient_uuid = $request->recipient_uuid;
 
