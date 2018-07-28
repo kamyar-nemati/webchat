@@ -54,6 +54,13 @@
 
                                 <ul class="dropdown-menu">
                                     <li>
+                                        <a href="/home">Home</a>
+                                        <a href="/task">Task</a>
+                                    </li>
+
+                                    <li role="separator" class="divider"></li>
+
+                                    <li>
                                         <a href="{{ route('logout') }}"
                                             onclick="event.preventDefault();
                                                      document.getElementById('logout-form').submit();">

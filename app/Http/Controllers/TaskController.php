@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Task;
 use App\User;
+use App\Task;
+use App\Friends;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,10 +29,15 @@ class TaskController extends Controller
     public function index()
     {
         // get user's uuid
-        $uuid = Auth::user()['uuid'];
+        $user_uuid = Auth::user()['uuid'];
+
+        $shared_list = $this->getSharedList();
+        $non_shared_list = $this->getNonSharedList($shared_list);
 
         return view('task', [
-            'user_uuid' => $uuid,
+            'user_uuid' => $user_uuid,
+            'shared_list' => $shared_list,
+            'non_shared_list' => $non_shared_list,
         ]);
     }
 
@@ -54,7 +60,9 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $task_name = $request->task_name;
-        $user_uuid = $request->user_uuid;
+
+        // get user's id
+        $user_id = Auth::user()['id'];
 
         // every task must be given a uuid
         $task_uuid = "";
@@ -74,29 +82,17 @@ class TaskController extends Controller
             ];
         }
 
-        // begin transaction
-        DB::beginTransaction();
-        
         try
         {
-            // get owner user_id reference
-            $owner_user_id = User::where('uuid', '=', $user_uuid)
-                    ->get(['id'])
-                    ->first()
-                    ->toArray()['id'];
-
             // save task into database
             $task = Task::create([
                 'uuid' => $task_uuid,
                 'name' => $task_name,
-                'user_id' => $owner_user_id,
+                'user_id' => $user_id,
             ]);
         }
         catch (QueryException $ex)
         {
-            // roll back transaction
-            DB::rollBack();
-
             // abort
             return [
                 'stat' => -1,
@@ -104,12 +100,11 @@ class TaskController extends Controller
             ];
         }
         
-        // commit transaction
-        DB::commit();
-        
         return [
             'stat' => 0,
             'task_uuid' => $task_uuid,
+            'task_owner' => Auth::user()['name'],
+            'shared_list' => $this->getSharedList(),
         ];
     }
 
@@ -127,24 +122,80 @@ class TaskController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Task  $task
+     * @param  $uuid
      * @return \Illuminate\Http\Response
      */
-    public function edit(Task $task)
+    public function edit($uuid)
     {
-        //
+        // get user's id
+        $user_id = Auth::user()['id'];
+        // get user's uuid
+        $user_uuid = Auth::user()['uuid'];
+
+        $task = Task::where('uuid', '=', $uuid)
+                ->where('user_id', '=', $user_id)
+                ->get(['name'])
+                ->first();
+
+        if (!$task)
+        {
+            return abort(404);
+        }
+
+        $task_name = $task->toArray()['name'];
+
+        return view('task_update', [
+            'user_uuid' => $user_uuid,
+            'task_uuid' => $uuid,
+            'task_name' => $task_name,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Task  $task
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Task $task)
+    public function update(Request $request)
     {
-        //
+        $task_uuid = $request->task_uuid;
+        $task_name = $request->task_name;
+
+        // get user's id
+        $user_id = Auth::user()['id'];
+
+        $task = Task::where('uuid', '=', $task_uuid)
+                ->where('user_id', '=', $user_id)
+                ->get(['name'])
+                ->first();
+
+        // validate task
+        if (!$task)
+        {
+            return [
+                'stat' => -1,
+            ];
+        }
+
+        // update
+        $task = Task::where('uuid', '=', $task_uuid)
+                ->where('user_id', '=', $user_id)
+                ->update(['name' => $task_name]);
+
+        // verify update
+        if (!$task)
+        {
+            return [
+                'stat' => -1,
+            ];
+        }
+
+        return [
+            'stat' => 0,
+            'task_owner' => Auth::user()['name'],
+            'shared_list' => $this->getSharedList(),
+        ];
     }
 
     /**
@@ -158,15 +209,149 @@ class TaskController extends Controller
         //
     }
 
-    public function poll(Request $request)
+    private function getTasks(&$user_id)
     {
+        return Task::join('users', 'tasks.user_id', '=', 'users.id')
+                ->where('tasks.user_id', '=', $user_id)
+                ->get(['tasks.uuid', 'tasks.name', 'users.name AS owner'])
+                ->toArray();
+    }
+
+    private function getFriends(&$user_id)
+    {
+        return Friends::where('friend_user_id', '=', $user_id)
+                ->get(['user_id'])
+                ->toArray();
+    }
+
+    public function pollOwn(Request $request)
+    {
+        // get user's id
         $user_id = Auth::user()['id'];
 
         // get own tasks
-        $tasks = Task::where('tasks.user_id', '=', $user_id)
-                ->get(['uuid', 'name'])
-                ->toArray();
+        $tasks = $this->getTasks($user_id);
 
         return $tasks;
+    }
+
+    public function pollOther(Request $request)
+    {
+        // get user's id
+        $user_id = Auth::user()['id'];
+
+        // get friends
+        $friends = $this->getFriends($user_id);
+
+        $tasks = [];
+
+        foreach ($friends as &$friend)
+        {
+            $friend_user_id =& $friend['user_id'];
+
+            $task = $this->getTasks($friend_user_id);
+
+            if ($task)
+            {
+                $tasks = array_merge($tasks, $task);
+            }
+        }
+
+        return $tasks;
+    }
+
+    private function getSharedList()
+    {
+        $user_id = Auth::user()['id'];
+
+        return User::join('friends', 'friends.friend_user_id', '=', 'users.id')
+                ->where('friends.user_id', '=', $user_id)
+                ->get(['users.uuid', 'users.profile_id', 'users.name'])
+                ->toArray();
+    }
+
+    private function getNonSharedList(Array &$sharedList)
+    {
+        $user_id = Auth::user()['id'];
+
+        $other_users = User::where('id', '<>', $user_id)
+                ->get(['uuid', 'profile_id', 'name'])
+                ->toArray();
+
+        $nonSharedList = [];
+
+        foreach ($other_users as &$other_user)
+        {
+            $ok = true;
+
+            foreach ($sharedList as &$friend)
+            {
+                if ($other_user['uuid'] === $friend['uuid'])
+                {
+                    $ok = false;
+                    break;
+                }
+            }
+
+            if ($ok)
+            {
+                $nonSharedList[] = $other_user;
+            }
+        }
+
+        return $nonSharedList;
+    }
+
+    private function getFriendId(String &$friend_uuid)
+    {
+        $friend = User::where('uuid', '=', $friend_uuid)
+                ->get(['id'])
+                ->first()
+                ->toArray();
+
+        if ($friend)
+        {
+            return $friend['id'];
+        }
+
+        return null;
+    }
+
+    public function unshare($uuid)
+    {
+        $user_id = Auth::user()['id'];
+
+        $friend_user_id = $this->getFriendId($uuid);
+
+        if ($friend_user_id)
+        {
+            Friends::where('user_id', '=', $user_id)
+                    ->where('friend_user_id', '=', $friend_user_id)
+                    ->delete();
+        }
+
+        return $this->index();
+    }
+
+    public function share($uuid)
+    {
+        $user_id = Auth::user()['id'];
+
+        $friend_user_id = $this->getFriendId($uuid);
+
+        $friend = Friends::where('user_id', '=', $user_id)
+                ->where('friend_user_id', '=', $friend_user_id)
+                ->get(['id'])
+                ->first();
+
+        if (!$friend)
+        {
+            $friend = Friends::create([
+                'user_id' => $user_id,
+                'friend_user_id' => $friend_user_id,
+            ]);
+        }
+
+        return $this->index();
     }
 }

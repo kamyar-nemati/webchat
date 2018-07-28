@@ -17,7 +17,8 @@
 
     // message formatter object model
     $.TaskAgent.Formatter = {};
-    $.TaskAgent.Formatter.NewTask = {};
+    $.TaskAgent.Formatter.NewOwnTask = {};
+    $.TaskAgent.Formatter.NewOtherTask = {};
 
     // websocket
     $.TaskAgent.Socket = null;
@@ -35,9 +36,15 @@
     $.TaskAgent.launched = false;
     $.TaskAgent.disrupted = false;
 
+    $.TaskAgent.Files = null;
+
     // task formatter object implementation
-    $.TaskAgent.Formatter.NewTask.format = function(Task) {
-        return '<p id="' + Task.uuid + '" class="">' + Task.name + '</p>';
+    $.TaskAgent.Formatter.NewOwnTask.format = function(Task) {
+        return '<a class="list-group-item" href="/task/edit/' + Task.uuid + '" id="' + Task.uuid + '"><span class="badge"></span>' + Task.name + '</a>';
+    }
+
+    $.TaskAgent.Formatter.NewOtherTask.format = function(Task) {
+        return '<li class="list-group-item"><span class="badge">' + Task.owner + '</span><span id="' + Task.uuid + '">' + Task.name + '</span></li>';
     }
 
     // socket server end point
@@ -126,7 +133,6 @@
             },
             data: {
                 'task_name': task_name,
-                'user_uuid': $.TaskAgent.user_uuid,
             },
             success: function(data, textStatus, jqXHR) {
                 // abort send on failure
@@ -137,12 +143,22 @@
 
                 // get task uuid
                 var task_uuid = data.task_uuid;
-                
-                // send (broadcast) task
-                /* $.TaskAgent.Socket.emit('new_msg', {
-                    task_uuid: task_uuid,
-                    task_name: task_name,
-                }); */
+
+                var task_owner = data.task_owner;
+
+                var shared_list = data.shared_list;
+
+                shared_list.forEach(userObject => {
+                    var recipient = userObject.uuid;
+
+                    // send (broadcast) new task
+                    $.TaskAgent.Socket.emit('task_created', {
+                        recipient: recipient,
+                        task_uuid: task_uuid,
+                        task_name: task_name,
+                        task_owner: task_owner
+                    });
+                });
 
                 var Task = {
                     uuid: task_uuid,
@@ -150,8 +166,8 @@
                 };
 
                 // append task to task_list body
-                $.TaskAgent.list_task(Task, $.TaskAgent.Dom.task_list, $.TaskAgent.Formatter.NewTask);
-                
+                $.TaskAgent.list_task(Task, $.TaskAgent.Dom.task_list, $.TaskAgent.Formatter.NewOwnTask);
+
                 $.TaskAgent.scroll_down_task_list();
 
                 // clear the task name textbox
@@ -197,16 +213,48 @@
             this.stop_act_disrupted();
         });
 
-        // custom 'new_msg' event handler
-        /* this.Socket.on('new_msg', (object) => {
-            var message_uuid = object.message_uuid;
-            var message = object.message;
-            var sender = object.sender;
+        // custom 'task_created' event handler
+        this.Socket.on('task_created', (object) => {
+            var task_uuid = object.task_uuid;
+            var task_name = object.task_name;
+            var task_owner = object.task_owner;
 
-            var formatter = this.Formatter.NewTask;
-            // process_new_message => list_task
-            this.process_new_message(message_uuid, message, sender, formatter, function(success) {});
-        }); */
+            var notification = '<b>' + task_owner + '</b> created <b>' + task_name + '</b>';
+
+            $.bootstrapGrowl(notification, {
+                // types available: info, success, warning, danger
+                type: 'success',
+                delay: 5000,
+            });
+            
+            var Task = {
+                uuid: task_uuid,
+                name: task_name,
+                owner: task_owner
+            };
+
+            // append task to task_list body
+            $.TaskAgent.list_task(Task, $.TaskAgent.Dom.task_list, $.TaskAgent.Formatter.NewOtherTask);
+
+        });
+
+        // custom 'task_updated' event handler
+        this.Socket.on('task_updated', (object) => {
+            var task_uuid = object.task_uuid;
+            var task_owner = object.task_owner;
+            var task_name = object.task_name;
+
+            var notification = '<b>' + task_owner + '</b> updated <b>' + task_name + '</b>';
+
+            $.bootstrapGrowl(notification, {
+                // types available: info, success, warning, danger
+                type: 'info',
+                delay: 5000,
+            });
+
+            // update task name
+            $('#' + task_uuid).text(task_name);
+        });
 
         // 'disconnect' event handler
         this.Socket.on('disconnect', () => {
@@ -223,9 +271,9 @@
             this.stop_act_disrupted();
         });
 
-        // poll tasks before joining
+        // poll own tasks before joining
         $.ajax({
-            url: '/task/poll',
+            url: '/task/pollOwn',
             method: 'GET',
             async: false,
             headers: {
@@ -241,7 +289,33 @@
                         name: messageObject.name
                     };
 
-                    var Formatter = $.TaskAgent.Formatter.NewTask;
+                    var Formatter = $.TaskAgent.Formatter.NewOwnTask;
+
+                    $.TaskAgent.list_task(Task, $.TaskAgent.Dom.task_list, Formatter);
+                });
+            }
+        });
+
+        // poll others' tasks before joining
+        $.ajax({
+            url: '/task/pollOther',
+            method: 'GET',
+            async: false,
+            headers: {
+                'X-CSRF-TOKEN': $.TaskAgent.csrf_token
+            },
+            data: {},
+            success: function(data, textStatus, jqXHR) {
+                // loop through missed messages
+                data.forEach(messageObject => {
+                    // task object
+                    var Task = {
+                        uuid: messageObject.uuid,
+                        name: messageObject.name,
+                        owner: messageObject.owner
+                    };
+
+                    var Formatter = $.TaskAgent.Formatter.NewOtherTask;
 
                     $.TaskAgent.list_task(Task, $.TaskAgent.Dom.task_list, Formatter);
                 });
@@ -275,5 +349,49 @@
     
         // launch the task agent
         $.TaskAgent.launch();
+
+        // show warning message on demo-features
+        var warning_notification = 'Task file upload feature is for demonstration only. It does not function at this moment.';
+
+        $.bootstrapGrowl(warning_notification, {
+            // types available: info, success, warning, danger
+            type: 'danger',
+            delay: 30000,
+        });
+
+        // drop zone scripts
+        var dropZone = document.getElementById('drop-zone');
+
+        var startUpload = function() {
+            var files = $.TaskAgent.Files;
+
+            $('#file_list').html('');
+            
+            Array.prototype.forEach.call(files, file => {
+                console.log(file);
+                var file_row = '<li class="list-group-item list-group-item-info"><span class="badge alert-info pull-right"><a href="#">Delete</a></span>' + file.name + '</li>';
+                $('#file_list').append(file_row);
+            });
+        };
+
+        dropZone.ondrop = function(e) {
+            e.preventDefault();
+            this.className = 'upload-drop-zone';
+
+            $.TaskAgent.Files = e.dataTransfer.files;
+
+            startUpload()
+        }
+
+        dropZone.ondragover = function() {
+            this.className = 'upload-drop-zone drop';
+            return false;
+        }
+
+        dropZone.ondragleave = function() {
+            this.className = 'upload-drop-zone';
+            return false;
+        }
+
     });
 }(jQuery));

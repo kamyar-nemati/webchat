@@ -9,6 +9,11 @@
     overflow: scroll;
 }
 
+.shared_list_panel {
+    height: 80%;
+    overflow: scroll;
+}
+
 .message_box {
     padding: 5px 15px 5px 15px;
     display: inline-block;
@@ -61,4 +66,23 @@
 
 .panel_status {
     color: red;
+}
+
+.upload-drop-zone {
+    height: 200px;
+    border-width: 2px;
+    margin-bottom: 20px;
+}
+
+.upload-drop-zone {
+    color: #ccc;
+    border-style: dashed;
+    border-color: #ccc;
+    line-height: 200px;
+    text-align: center
+}
+
+.upload-drop-zone.drop {
+    color: #222;
+    border-color: #222;
 }

@@ -48,4 +48,40 @@ io.on('connection', (socket) => {
             sender: socket.username
         });
     });
+
+    // 'task_created' event handler
+    socket.on('task_created', (object) => {
+        console.log('New task notification received ' + JSON.stringify(object));
+
+        var recipient = object.recipient;
+        var task_uuid = object.task_uuid;
+        var task_name = object.task_name;
+        var task_owner = object.task_owner;
+
+        // deliver task notification to recipient
+        console.log('Broadcasting task creation notification to: ' + recipient);
+        io.to(recipient).emit('task_created', {
+            task_uuid: task_uuid,
+            task_name: task_name,
+            task_owner: task_owner
+        });
+    });
+
+    // 'task_updated' event handler
+    socket.on('task_updated', (object) => {
+        console.log('Updated task notification received ' + JSON.stringify(object));
+
+        var recipient = object.recipient;
+        var task_uuid = object.task_uuid;
+        var task_owner = object.task_owner;
+        var task_name = object.task_name;
+
+        // deliver task update notification to recipient
+        console.log('Broadcasting task update notification to: ' + recipient);
+        io.to(recipient).emit('task_updated', {
+            task_uuid: task_uuid,
+            task_name: task_name,
+            task_owner: task_owner
+        });
+    });
 });
