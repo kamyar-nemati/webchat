@@ -340,7 +340,8 @@
                     var Task = {
                         uuid: messageObject.uuid,
                         name: messageObject.name,
-                        owner: messageObject.owner
+                        owner: messageObject.owner,
+                        attachment_name: messageObject.attachment_name
                     };
 
                     var Formatter = $.TaskAgent.Formatter.NewOtherTask;
