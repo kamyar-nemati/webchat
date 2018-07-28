@@ -36,11 +36,18 @@
     $.TaskAgent.launched = false;
     $.TaskAgent.disrupted = false;
 
-    $.TaskAgent.Files = null;
+    $.TaskAgent.Attachment = null;
 
     // task formatter object implementation
     $.TaskAgent.Formatter.NewOwnTask.format = function(Task) {
-        return '<a class="list-group-item" href="/task/edit/' + Task.uuid + '" id="' + Task.uuid + '"><span class="badge"></span>' + Task.name + '</a>';
+        var attachment = '';
+
+        if (Task.attachment_url)
+        {
+            attachment = '&nbsp;<i class="material-icons">attachment</i>';
+        }
+
+        return '<a class="list-group-item" href="/task/edit/' + Task.uuid + '" id="' + Task.uuid + '">' + Task.name + attachment + '</a>';
     }
 
     $.TaskAgent.Formatter.NewOtherTask.format = function(Task) {
@@ -124,6 +131,15 @@
             return false;
         }
 
+        var formData = new FormData();
+
+        formData.append('task_name', task_name);
+        
+        if ($.TaskAgent.Attachment)
+        {
+            formData.append('attachment', $.TaskAgent.Attachment[0]);
+        }
+
         // save task
         $.ajax({
             url: '/task/store',
@@ -131,9 +147,9 @@
             headers: {
                 'X-CSRF-TOKEN': $.TaskAgent.csrf_token
             },
-            data: {
-                'task_name': task_name,
-            },
+            data: formData,
+            processData: false,
+            contentType: false,
             success: function(data, textStatus, jqXHR) {
                 // abort send on failure
                 if (data.stat !== 0)
@@ -141,10 +157,11 @@
                     return false;
                 }
 
-                // get task uuid
+                // get task info
                 var task_uuid = data.task_uuid;
-
                 var task_owner = data.task_owner;
+                var attachment_name = data.attachment_name;
+                var attachment_url = data.attachment_url;
 
                 var shared_list = data.shared_list;
 
@@ -162,7 +179,9 @@
 
                 var Task = {
                     uuid: task_uuid,
-                    name: task_name
+                    name: task_name,
+                    attachment_name: attachment_name,
+                    attachment_url: attachment_url
                 };
 
                 // append task to task_list body
@@ -286,7 +305,9 @@
                     // task object
                     var Task = {
                         uuid: messageObject.uuid,
-                        name: messageObject.name
+                        name: messageObject.name,
+                        attachment_name: messageObject.attachment_name,
+                        attachment_url: messageObject.attachment_url
                     };
 
                     var Formatter = $.TaskAgent.Formatter.NewOwnTask;
@@ -350,20 +371,11 @@
         // launch the task agent
         $.TaskAgent.launch();
 
-        // show warning message on demo-features
-        var warning_notification = 'Task file upload feature is for demonstration only. It does not function at this moment.';
-
-        $.bootstrapGrowl(warning_notification, {
-            // types available: info, success, warning, danger
-            type: 'danger',
-            delay: 30000,
-        });
-
         // drop zone scripts
         var dropZone = document.getElementById('drop-zone');
 
         var startUpload = function() {
-            var files = $.TaskAgent.Files;
+            var files = $.TaskAgent.Attachment;
 
             $('#file_list').html('');
             
@@ -375,12 +387,25 @@
         };
 
         dropZone.ondrop = function(e) {
+            var files = e.dataTransfer.files;
+
+            if (files.length > 1)
+            {
+                $.bootstrapGrowl('Only one file can be attached.', {
+                    // types available: info, success, warning, danger
+                    type: 'danger',
+                    delay: 2500,
+                });
+
+                return false;
+            }
+
             e.preventDefault();
             this.className = 'upload-drop-zone';
 
-            $.TaskAgent.Files = e.dataTransfer.files;
+            $.TaskAgent.Attachment = files;
 
-            startUpload()
+            startUpload();
         }
 
         dropZone.ondragover = function() {

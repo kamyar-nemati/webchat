@@ -29,6 +29,9 @@ class CreateTasksTable extends Migration
                     ->on('users')
                     ->onDelete('cascade');
 
+            $table->text('attachment_hash');
+            $table->text('attachment_name');
+
             $table->timestamps();
         });
     }

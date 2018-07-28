@@ -31,6 +31,15 @@
                         </span>
                     </div>
 
+                    @if ($attachment_url)
+                        <br>
+
+                        <div class="input-group">
+                            <span class="input-group-addon" id="basic-addon1">Attachment:</span>
+                            <a class="form-control" href="{{ $attachment_url }}">{{ $attachment_name }}</a>
+                        </div>
+                    @endif
+
                     <div id="status_panel" class="panel_status"></div>
                 </div>
             </div>
