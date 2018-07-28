@@ -373,10 +373,7 @@ class TaskController extends Controller
 
     public function download($uuid)
     {
-        $user_id = Auth::user()['id'];
-        
         $task = Task::where('uuid', '=', $uuid)
-                ->where('user_id', '=', $user_id)
                 ->get(['attachment_hash'])
                 ->first();
 

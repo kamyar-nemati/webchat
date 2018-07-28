@@ -55,10 +55,10 @@
 
         if (Task.attachment_name)
         {
-            attachment = '&nbsp;<i class="material-icons">attachment</i>';
+            attachment = '&nbsp;<a href="/task/download/' + Task.uuid + '" class="material-icons">attachment</a>';
         }
 
-        return '<li class="list-group-item"><span class="badge">' + Task.owner + '</span><span id="' + Task.uuid + '">' + Task.name + attachment + '</span></li>';
+        return '<li class="list-group-item"><span class="badge">' + Task.owner + '</span><span id="' + Task.uuid + '">' + Task.name + '</span>' + attachment + '</li>';
     }
 
     // socket server end point
