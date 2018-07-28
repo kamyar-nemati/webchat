@@ -42,7 +42,7 @@
     $.TaskAgent.Formatter.NewOwnTask.format = function(Task) {
         var attachment = '';
 
-        if (Task.attachment_url)
+        if (Task.attachment_name)
         {
             attachment = '&nbsp;<i class="material-icons">attachment</i>';
         }
@@ -51,7 +51,14 @@
     }
 
     $.TaskAgent.Formatter.NewOtherTask.format = function(Task) {
-        return '<li class="list-group-item"><span class="badge">' + Task.owner + '</span><span id="' + Task.uuid + '">' + Task.name + '</span></li>';
+        var attachment = '';
+
+        if (Task.attachment_name)
+        {
+            attachment = '&nbsp;<i class="material-icons">attachment</i>';
+        }
+
+        return '<li class="list-group-item"><span class="badge">' + Task.owner + '</span><span id="' + Task.uuid + '">' + Task.name + attachment + '</span></li>';
     }
 
     // socket server end point
@@ -161,7 +168,6 @@
                 var task_uuid = data.task_uuid;
                 var task_owner = data.task_owner;
                 var attachment_name = data.attachment_name;
-                var attachment_url = data.attachment_url;
 
                 var shared_list = data.shared_list;
 
@@ -173,7 +179,8 @@
                         recipient: recipient,
                         task_uuid: task_uuid,
                         task_name: task_name,
-                        task_owner: task_owner
+                        task_owner: task_owner,
+                        attachment_name: attachment_name
                     });
                 });
 
@@ -181,7 +188,6 @@
                     uuid: task_uuid,
                     name: task_name,
                     attachment_name: attachment_name,
-                    attachment_url: attachment_url
                 };
 
                 // append task to task_list body
@@ -237,6 +243,7 @@
             var task_uuid = object.task_uuid;
             var task_name = object.task_name;
             var task_owner = object.task_owner;
+            var attachment_name = object.attachment_name;
 
             var notification = '<b>' + task_owner + '</b> created <b>' + task_name + '</b>';
 
@@ -249,7 +256,8 @@
             var Task = {
                 uuid: task_uuid,
                 name: task_name,
-                owner: task_owner
+                owner: task_owner,
+                attachment_name: attachment_name
             };
 
             // append task to task_list body
@@ -307,7 +315,6 @@
                         uuid: messageObject.uuid,
                         name: messageObject.name,
                         attachment_name: messageObject.attachment_name,
-                        attachment_url: messageObject.attachment_url
                     };
 
                     var Formatter = $.TaskAgent.Formatter.NewOwnTask;

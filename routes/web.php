@@ -43,3 +43,5 @@ Route::get('/task/share/{uuid}', 'TaskController@share');
 
 Route::get('/task/edit/{uuid}', 'TaskController@edit');
 Route::post('/task/update', 'TaskController@update');
+
+Route::get('/task/download/{uuid}', 'TaskController@download');

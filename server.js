@@ -57,13 +57,15 @@ io.on('connection', (socket) => {
         var task_uuid = object.task_uuid;
         var task_name = object.task_name;
         var task_owner = object.task_owner;
+        var attachment_name = object.attachment_name;
 
         // deliver task notification to recipient
         console.log('Broadcasting task creation notification to: ' + recipient);
         io.to(recipient).emit('task_created', {
             task_uuid: task_uuid,
             task_name: task_name,
-            task_owner: task_owner
+            task_owner: task_owner,
+            attachment_name: attachment_name
         });
     });
 

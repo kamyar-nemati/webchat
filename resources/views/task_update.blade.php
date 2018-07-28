@@ -31,12 +31,12 @@
                         </span>
                     </div>
 
-                    @if ($attachment_url)
+                    @if ($attachment_name)
                         <br>
 
                         <div class="input-group">
                             <span class="input-group-addon" id="basic-addon1">Attachment:</span>
-                            <a class="form-control" href="{{ $attachment_url }}">{{ $attachment_name }}</a>
+                            <a class="form-control" href="/task/download/{{ $task_uuid }}">{{ $attachment_name }}</a>
                         </div>
                     @endif
 

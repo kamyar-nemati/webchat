@@ -61,7 +61,6 @@ class TaskController extends Controller
     {
         $attachment_hash = '';
         $attachment_name = '';
-        $attachment_url = '';
 
         $task_name = $request->task_name;
         
@@ -69,7 +68,6 @@ class TaskController extends Controller
         {
             $attachment_hash = $request->attachment->store('media', 'public');
             $attachment_name = $request->attachment->getClientOriginalName();
-            $attachment_url = storage_path($attachment_hash);
         }
 
         // get user's id
@@ -118,7 +116,6 @@ class TaskController extends Controller
             'task_uuid' => $task_uuid,
             'task_owner' => Auth::user()['name'],
             'attachment_name' => $attachment_name,
-            'attachment_url' => $attachment_url,
             'shared_list' => $this->getSharedList(),
         ];
     }
@@ -149,7 +146,7 @@ class TaskController extends Controller
 
         $task = Task::where('uuid', '=', $uuid)
                 ->where('user_id', '=', $user_id)
-                ->get(['name', 'attachment_hash', 'attachment_name'])
+                ->get(['name', 'attachment_name'])
                 ->first();
 
         if (!$task)
@@ -161,18 +158,12 @@ class TaskController extends Controller
 
         $task_name = $task['name'];
         $attachment_name = $task['attachment_name'];
-        $attachment_url = '';
-        if ($task['attachment_hash'])
-        {
-            $attachment_url = storage_path($task['attachment_hash']);
-        }
 
         return view('task_update', [
             'user_uuid' => $user_uuid,
             'task_uuid' => $uuid,
             'task_name' => $task_name,
             'attachment_name' => $attachment_name,
-            'attachment_url' => $attachment_url,
         ]);
     }
 
@@ -238,7 +229,7 @@ class TaskController extends Controller
     {
         return Task::join('users', 'tasks.user_id', '=', 'users.id')
                 ->where('tasks.user_id', '=', $user_id)
-                ->get(['tasks.uuid', 'tasks.name', 'users.name AS owner', 'attachment_hash AS attachment_url', 'attachment_name'])
+                ->get(['tasks.uuid', 'tasks.name', 'users.name AS owner', 'attachment_name'])
                 ->toArray();
     }
 
@@ -256,16 +247,6 @@ class TaskController extends Controller
 
         // get own tasks
         $tasks = $this->getTasks($user_id);
-
-        foreach ($tasks as &$task)
-        {
-            if (empty($task['attachment_url']))
-            {
-                continue;
-            }
-
-            $task['attachment_url'] = storage_path($task['attachment_url']);
-        }
 
         return $tasks;
     }
@@ -388,5 +369,26 @@ class TaskController extends Controller
         }
 
         return $this->index();
+    }
+
+    public function download($uuid)
+    {
+        $user_id = Auth::user()['id'];
+        
+        $task = Task::where('uuid', '=', $uuid)
+                ->where('user_id', '=', $user_id)
+                ->get(['attachment_hash'])
+                ->first();
+
+        if (!$task)
+        {
+            abort(404);
+        }
+
+        $task = $task->toArray();
+
+        $attachment_hash = $task['attachment_hash'];
+
+        return response()->download(storage_path(('app/public/' . $attachment_hash)));
     }
 }
